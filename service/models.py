@@ -201,7 +201,7 @@ class Product(db.Model):
 
         """
         logger.info("Processing name query for %s ...", name)
-        return cls.query.filter(cls.name == name)
+        return cls.query.filter(cls.name == name).all()
 
     @classmethod
     def find_by_price(cls, price: Decimal) -> list:

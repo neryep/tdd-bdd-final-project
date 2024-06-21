@@ -100,19 +100,28 @@ def create_products():
 ######################################################################
 # LIST PRODUCTS
 ######################################################################
+
 @app.route("/products", methods=["GET"])
 def list_products():
-    """Returns a list of Products"""
-    app.logger.info("Request to list Products...")
+    """Return a list of products"""
+    app.logger.info("Request to list products...")
 
-    products = Product.all()
+    name = request.args.get("name")
+    if name:
+        app.logger.info("Find by name: %s", name)
+        products = Product.find_by_name(name)
+        app.logger.info("Products found: %s", [product.name for product in products])
+    else:
+        app.logger.info("Find all")
+        products = Product.all()
 
     results = [product.serialize() for product in products]
     app.logger.info("[%s] Products returned", len(results))
-    return results, status.HTTP_200_OK
+    return jsonify(results), status.HTTP_200_OK
 
+########################################################################
 # R E A D   A   P R O D U C T
-############################################################################################################################################
+########################################################################
 
 @app.route("/products/<int:product_id>", methods=["GET"])
 def get_products(product_id):

@@ -166,7 +166,7 @@ class TestProductModel(unittest.TestCase):
         name = products[0].name
         count = len([product for product in products if product.name == name])
         found = Product.find_by_name(name)
-        self.assertEqual(found.count(), count)
+        self.assertEqual(len(found), count)
         for product in found:
             self.assertEqual(product.name, name)
 
