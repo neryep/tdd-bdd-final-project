@@ -24,6 +24,11 @@ For information on Waiting until elements are present in the HTML see:
 """
 import requests
 from behave import given
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # HTTP Return Codes
 HTTP_200_OK = 200
@@ -38,15 +43,27 @@ def step_impl(context):
     #
     rest_endpoint = f"{context.base_url}/products"
     context.resp = requests.get(rest_endpoint)
+    logger.debug(f"GET {rest_endpoint} response: {context.resp.status_code} {context.resp.text}")
     assert(context.resp.status_code == HTTP_200_OK)
+
     for product in context.resp.json():
-        context.resp = requests.delete(f"{rest_endpoint}/{product['id']}")
+        delete_url = f"{rest_endpoint}/{product['id']}"
+        context.resp = requests.delete(delete_url)
+        logger.debug(f"DELETE {delete_url} response: {context.resp.status_code} {context.resp.text}")
         assert(context.resp.status_code == HTTP_204_NO_CONTENT)
 
     #
-    # load the database with new products
+    # Load the database with new products
     #
     for row in context.table:
-        #
-        # ADD YOUR CODE HERE TO CREATE PRODUCTS VIA THE REST API
-        #
+        payload = {
+            "name": row['name'],
+            "description": row['description'],
+            "price": float(row['price']),  # Ensure price is a float
+            "available": row['available'].lower() == 'true',  # Convert available to boolean
+            "category": row['category']
+        }
+        context.resp = requests.post(rest_endpoint, json=payload)
+        logger.debug(f"POST {rest_endpoint} payload: {payload}")
+        logger.debug(f"POST {rest_endpoint} response: {context.resp.status_code} {context.resp.text}")
+        assert context.resp.status_code == HTTP_201_CREATED, f"Error: {context.resp.text}"
